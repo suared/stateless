@@ -1,12 +1,14 @@
-package Test
+package test
 
 import (
 	"log"
 	"testing"
+
+	"github.com/suared/stateless/model/stocks"
 )
 
 func TestMarketModel(t *testing.T) {
-	davidsAccount := stateless.model.stocks.MakeAccount("David")
+	davidsAccount := stocks.MakeAccount("David")
 	davidsAccount.BuyStock("QQQ", 3)
 
 	log.Printf("davids account is: %v", davidsAccount)
