@@ -1,9 +1,32 @@
 package model
 
+import (
+	"fmt"
+)
+
+const (
+	NSF = iota
+	NoPrice
+)
+
+type CustomError struct {
+	ID      int
+	Message string
+}
+
+func (e *CustomError) Code() int {
+	return e.ID
+}
+
+func (e *CustomError) Error() string {
+	return e.Message
+}
+
 var mrMarket *market
 
 func init() {
 	mrMarket = new(market)
+	mrMarket.quotes = make(map[string]quote)
 }
 
 type account struct {
@@ -15,6 +38,8 @@ type account struct {
 func MakeAccount(id string) *account {
 	newAccount := new(account)
 	newAccount.accountID = id
+	newAccount.stocks = make(map[string]stock)
+	return newAccount
 }
 
 type stock struct {
@@ -31,7 +56,29 @@ type quote struct {
 	Price  int64
 }
 
-func (a *account) BuyStock(symbol string, quantity int64) {
+func (a *account) AddCash(value int64) {
+	a.cash += value
+}
+
+func (a *account) BuyStock(symbol string, quantity int64) error {
+	currentPrice := mrMarket.quotes[symbol].Price
+	if currentPrice <= 0 {
+		err := &CustomError{}
+		err.ID = NoPrice
+		err.Message = symbol + ": No Market price available"
+		return err
+	}
+
+	purchaseValue := currentPrice * quantity
+	if a.cash <= purchaseValue {
+		err := &CustomError{}
+		err.ID = NSF
+		err.Message = fmt.Sprintf("Insufficient cash: %v, to purchase: quantity: %v, symbol: %v, at current price: %v",
+			a.cash, quantity, symbol, currentPrice)
+		return err
+	}
+	a.cash -= purchaseValue
+
 	currentStock := a.stocks[symbol]
 	if currentStock.Symbol == symbol {
 		currentStock.Quantity += quantity
@@ -41,6 +88,8 @@ func (a *account) BuyStock(symbol string, quantity int64) {
 	}
 
 	a.stocks[symbol] = currentStock
+
+	return nil
 }
 
 func (a *account) GetTotalValue() int64 {

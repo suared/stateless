@@ -4,11 +4,13 @@ import (
 	"log"
 	"testing"
 
-	"github.com/suared/stateless/model/stocks"
+	stocks "github.com/suared/stateless/model/stocks"
 )
 
 func TestMarketModel(t *testing.T) {
+	stocks.UpdateQuote("QQQ", 12323)
 	davidsAccount := stocks.MakeAccount("David")
+	davidsAccount.AddCash(999999999)
 	davidsAccount.BuyStock("QQQ", 3)
 
 	log.Printf("davids account is: %v", davidsAccount)
